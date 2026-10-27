@@ -286,3 +286,12 @@ class SuperuserTests(DashboardBase):
                     self.url('settings', self.space.slug), self.url('activity', self.space.slug),
                     self.url('week', self.space.slug, W2.isoformat())]:
             self.assertEqual(self.client.get(url).status_code, 200, url)
+
+
+class WeekBoundsDashboardTests(DashboardBase):
+    def test_extreme_weeks_404(self):
+        for value in ['0001-01-01', '9999-12-31']:
+            self.assertEqual(self.client.get(self.url('week', self.space.slug, value)).status_code, 404)
+            r = self.client.post(self.url('week_start', self.space.slug, value))
+            self.assertEqual(r.status_code, 404)
+        self.assertFalse(Week.objects.filter(start__year__in=[1, 9999]).exists())

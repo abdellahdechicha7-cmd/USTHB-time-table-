@@ -38,6 +38,12 @@ class RenderTests(TestCase):
         out = self.r({'type': 'header', 'data': {'text': 'A', 'level': 2}}, top_level=4)
         self.assertIn('<h4', out)
 
+    def test_header_bogus_level_falls_back(self):
+        # Legacy/admin-edited JSON may hold Infinity (json.loads accepts it).
+        for level in (float('inf'), float('-inf'), 'x', None, [2]):
+            out = self.r({'type': 'header', 'data': {'text': 'A', 'level': level}})
+            self.assertIn('note-heading">A</h', out)
+
     def test_legacy_list(self):
         out = self.r({'type': 'list', 'data': {'style': 'ordered', 'items': ['one', '<i>two</i>']}})
         self.assertEqual(out, '<ol><li>one</li><li><i>two</i></li></ol>')
@@ -95,6 +101,17 @@ class SanitizerTests(TestCase):
 
     def test_img_onerror(self):
         self.assertEqual(sanitize_inline('<img src=x onerror=alert(1)>'), '')
+
+    def test_mutation_and_parser_tricks(self):
+        for evil in ('<scr<script>ipt>alert(1)</script>', '<svg><script>alert(1)</script></svg>',
+                     '<style><img src=x onerror=alert(1)></style>', '<xmp><img src=x onerror=a()></xmp>',
+                     '<noscript><img src=x onerror=a()></noscript>', '<math><mi><img src onerror=a()>',
+                     '<![CDATA[<img src=x onerror=a()>]]>', '<a/href="javascript:a()">x</a>',
+                     '<A HREF=" JAVA&#x09;SCRIPT:a()">x</A>', '<a href=" javascript:a()">x</a>',
+                     '<a href="https://x/&quot;onmouseover=a()">x</a>', '<br/onload=a()>'):
+            out = sanitize_inline(evil)
+            self.assertNoActiveContent(out)
+            self.assertNotRegex(out, r'<a [^>]*" on|<[a-z]+ on')
 
     def test_attributes_stripped(self):
         self.assertEqual(sanitize_inline('<b onclick="x" style="y">b</b>'), '<b>b</b>')

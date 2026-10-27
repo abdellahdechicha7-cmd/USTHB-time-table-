@@ -9,7 +9,7 @@
   --border: #EAEAEA;
   --border-strong: #DCDBD7;
   --text: #2F3437;
-  --text-muted: #787774;
+  --text-muted: #6B6A67; /* >=4.7:1 on bg, surface, surface-2 and badge tints */
   --primary-bg: #111111;
   --primary-bg-hover: #333333;
   --primary-text: #FFFFFF;

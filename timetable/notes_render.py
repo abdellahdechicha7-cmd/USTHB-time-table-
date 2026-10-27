@@ -163,7 +163,7 @@ def _render_block(block, top_level):
     if kind == 'header':
         try:
             level = int(data.get('level', 2))
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, OverflowError):
             level = 2
         h = top_level if level <= 2 else top_level + 1
         h = max(1, min(h, 6))

@@ -8,13 +8,15 @@ PythonAnywhere WSGI file); the defaults below are for local development.
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-dev-only-change-me-in-production',
-)
+_DEV_SECRET_KEY = 'django-insecure-dev-only-change-me-in-production'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', _DEV_SECRET_KEY)
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
+if not DEBUG and (SECRET_KEY == _DEV_SECRET_KEY or len(SECRET_KEY) < 50):
+    raise ImproperlyConfigured('Set DJANGO_SECRET_KEY (50+ random characters) when DJANGO_DEBUG=0.')
 ALLOWED_HOSTS = [h for h in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if h]
 
 
@@ -99,3 +101,5 @@ if not DEBUG:
     CSRF_COOKIE_SECURE = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     SECURE_REFERRER_POLICY = 'same-origin'
+    # HSTS: start at 30 days; raise to 1 year once HTTPS is confirmed stable.
+    SECURE_HSTS_SECONDS = int(os.environ.get('DJANGO_HSTS_SECONDS', 60 * 60 * 24 * 30))

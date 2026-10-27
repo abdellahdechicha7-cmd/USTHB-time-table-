@@ -18,9 +18,10 @@
 .tt-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .tt-nav .btn { min-height: 44px; }
 .tt-nav .btn-icon { width: 44px; font-size: 1.25rem; line-height: 1; }
-.tt-week { margin: 0; font-weight: 500; font-size: .95rem; }
-.tt-jump { display: flex; gap: 6px; align-items: center; }
-.tt-jump input[type=date] { width: auto; min-height: 44px; }
+/* Mobile: prev / label / next share the first row; the rest wraps below. */
+.tt-week { flex: 1 1 10rem; min-width: 0; margin: 0; font-weight: 500; font-size: .95rem; text-align: center; }
+.tt-jump { display: flex; flex: 1 1 100%; gap: 6px; align-items: center; }
+.tt-jump input[type=date] { flex: 1 1 auto; width: auto; min-width: 0; min-height: 44px; }
 
 .tt-banner {
   display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 10px 14px;
@@ -64,6 +65,8 @@
 .tt-table-wrap { display: none; }
 @media (min-width: 900px) {
   .tt-head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  .tt-week { flex: none; text-align: left; }
+  .tt-jump { flex: none; }
   .tt-days { display: none; }
   .tt-table-wrap {
     display: block; overflow-x: auto;
@@ -80,7 +83,7 @@
   .tt-table tbody th .badge { margin-top: 4px; }
   .tt-table tr.is-today > * { background: var(--surface-2); }
   .tt-table tr.is-empty > * { padding-top: 6px; padding-bottom: 6px; }
-  .tt-table tr.is-empty th .muted { display: inline; }
+  .tt-table tr.is-empty th .muted { display: inline; white-space: nowrap; }
   .tt-table td .sess + .sess { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
 }
 

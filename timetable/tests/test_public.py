@@ -98,7 +98,7 @@ class PublicPagesTests(TestCase):
 
     def test_other_week_shows_this_week_link(self):
         with at(TODAY):
-            r = self.client.get(self.url('2026-10-19'))  # Monday -> snaps to Sat 17
+            r = self.client.get(self.url('2026-10-19'), follow=True)  # Monday -> redirects to Sat 17
         self.assertEqual(r.context['start'], PREV)
         self.assertContains(r, '>This week<')
         self.assertNotContains(r, 'is-today')
@@ -161,3 +161,23 @@ class PublicPagesTests(TestCase):
                 self.mk(self.week, day, slot, self.algebra, 'td', [self.g1, self.g2], location='X')
         self.assertEqual(count(), before)
         self.assertLessEqual(before, 15)
+
+
+class WeekBoundsTests(TestCase):
+    """Out-of-range or non-canonical week values never 500."""
+
+    @classmethod
+    def setUpTestData(cls):
+        Space.objects.create(name='S', slug='s')
+
+    def test_extreme_dates_404(self):
+        for value in ['0001-01-01', '0001-01-06', '9999-12-25', '9999-12-31', '1999-12-25', '2101-01-01']:
+            r = self.client.get(reverse('public:week', args=['s', value]))
+            self.assertEqual(r.status_code, 404, value)
+            r = self.client.get(reverse('public:space', args=['s']) + f'?date={value}')
+            self.assertEqual(r.status_code, 404, value)
+
+    def test_non_canonical_week_redirects_to_saturday(self):
+        r = self.client.get(reverse('public:week', args=['s', '2026-10-27']))
+        self.assertRedirects(r, reverse('public:week', args=['s', '2026-10-24']),
+                             fetch_redirect_response=False)

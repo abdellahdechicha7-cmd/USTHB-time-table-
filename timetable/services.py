@@ -11,6 +11,9 @@ from django.utils import timezone
 from .models import AuditLog, Note, Session, Space, Week
 
 SATURDAY = 5  # date.weekday() value
+# Accepted week range. Keeps +/- 7 day arithmetic away from date.min/date.max
+# (OverflowError -> 500) and stops admins creating weeks in year 0001 by URL.
+MIN_YEAR, MAX_YEAR = 2000, 2100
 
 
 # ---------------------------------------------------------------- weeks
@@ -30,7 +33,10 @@ def current_week_start(today: date | None = None) -> date:
 
 def parse_week(value: str) -> date:
     """Parse 'YYYY-MM-DD' and snap it to its Saturday. Raises ValueError."""
-    return week_start_for(date.fromisoformat(value))
+    d = date.fromisoformat(value)
+    if not MIN_YEAR <= d.year <= MAX_YEAR:
+        raise ValueError(f'Week must be between {MIN_YEAR} and {MAX_YEAR}.')
+    return week_start_for(d)
 
 
 def today_day_index(today: date | None = None):

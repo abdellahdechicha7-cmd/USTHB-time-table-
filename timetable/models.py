@@ -204,6 +204,8 @@ class AuditLog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        # Activity page: latest 100 entries of one space; the log only grows.
+        indexes = [models.Index(fields=['space', '-created_at'], name='auditlog_space_recent')]
 
     def __str__(self):
         return f'{self.created_at:%Y-%m-%d %H:%M} {self.user} {self.action}'

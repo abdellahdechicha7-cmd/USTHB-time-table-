@@ -61,6 +61,9 @@ def space(request, slug, week=None):
     now = today()
     current = current_week_start(now)
     start = _parse_or_404(week) if week is not None else current
+    if week is not None and week != start.isoformat():
+        # One canonical URL per week (any day / ISO variant -> its Saturday).
+        return redirect('public:week', slug=space.slug, week=start.isoformat())
     is_current = start == current
 
     editor = can_edit_space(request.user, space)
