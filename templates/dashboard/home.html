@@ -1,0 +1,44 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Dashboard · USTHB Timetable{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Dashboard</h1>
+    <p class="muted small">Signed in as {{ user.get_username }}{% if user.is_superuser %} · owner{% endif %}</p>
+  </div>
+  {% if user.is_superuser %}
+  <div class="row">
+    <a class="btn" href="{% url 'dashboard:admins' %}">Admins</a>
+    <a class="btn btn-primary" href="{% url 'dashboard:space_create' %}">New space</a>
+  </div>
+  {% endif %}
+</div>
+
+{% if spaces %}
+<ul class="space-list">
+  {% for s in spaces %}
+  <li class="space-item">
+    <div class="space-item-main">
+      <a class="space-item-title" href="{% url 'dashboard:week' s.slug week %}">{{ s.name }}</a>
+      <span class="muted small">{{ s.year }}{% if s.major %} · {{ s.major }}{% endif %}{% if s.section %} · Section {{ s.section }}{% endif %}</span>
+    </div>
+    <div class="row">
+      {% if not s.is_active %}<span class="badge">Inactive</span>{% endif %}
+      <a class="btn btn-ghost" href="{% url 'dashboard:settings' s.slug %}">Settings<span class="visually-hidden"> for {{ s.name }}</span></a>
+      <a class="btn" href="{% url 'dashboard:week' s.slug week %}">This week<span class="visually-hidden"> of {{ s.name }}</span></a>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="card empty">
+  <h2>No spaces yet</h2>
+  {% if user.is_superuser %}
+  <p class="muted">Create a space for each major and section.</p>
+  <a class="btn btn-primary" href="{% url 'dashboard:space_create' %}">New space</a>
+  {% else %}
+  <p class="muted">You are not an admin of any section yet. Ask the site owner to add you.</p>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

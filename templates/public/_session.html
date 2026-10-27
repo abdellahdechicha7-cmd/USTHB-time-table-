@@ -1,0 +1,13 @@
+<div class="sess{% if s.is_cancelled %} is-cancelled{% endif %}" data-groups="{{ s.group_key }}">
+  {% if show_time %}<div class="sess-time mono">{{ s.timeslot.start|time:"H:i" }}<span aria-hidden="true">–</span><span class="visually-hidden"> to </span>{{ s.timeslot.end|time:"H:i" }}</div>{% endif %}
+  <div class="sess-body">
+    <div class="sess-title">{% if s.is_cancelled %}<s>{{ s.subject.name }}</s>{% else %}{{ s.subject.name }}{% endif %}</div>
+    <div class="sess-tags">
+      <span class="badge badge-{{ s.kind }}">{{ s.get_kind_display }}</span>
+      {% for g in s.groups.all %}<span class="tag">{{ g.name }}</span>{% endfor %}
+      {% for code, label in s.change_labels %}<span class="badge badge-{{ code }}">{{ label }}</span>{% endfor %}
+    </div>
+    {% if s.location or s.teacher %}<div class="sess-meta">{% if s.location %}<span class="mono">{{ s.location }}</span>{% endif %}{% if s.teacher %}<span class="muted">{{ s.teacher }}</span>{% endif %}</div>{% endif %}
+    {% if s.comment %}<div class="sess-comment muted">{{ s.comment }}</div>{% endif %}
+  </div>
+</div>

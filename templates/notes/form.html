@@ -1,0 +1,76 @@
+{% extends "dashboard/_layout.html" %}
+{% load static %}
+{% block title %}{% if note %}Edit note{% else %}New note{% endif %} · {{ space.name }}{% endblock %}
+{% block extra_head %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/notes.css' %}">{% endblock %}
+{% block content %}
+{% include "dashboard/_space_nav.html" with active="notes" %}
+<div class="notes-admin notes-narrow">
+  <p class="small"><a href="{{ back_url }}">Back to notes</a></p>
+  <h1 class="visually-hidden">{% if note %}Edit note{% else %}New note{% endif %}</h1>
+
+  {% if errors %}
+    <ul class="messages" role="alert"><li class="error">Please fix the problems below.{% if errors.content %} {{ errors.content }}{% endif %}</li></ul>
+  {% endif %}
+
+  <form method="post" id="note-form" class="note-form" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="content" id="note-content" value="">
+
+    <div class="field">
+      <label for="note-title">Title</label>
+      <input type="text" name="title" id="note-title" class="note-title-input" value="{{ form.title }}"
+             maxlength="120" placeholder="Untitled" autocomplete="off"
+             {% if errors.title %}aria-invalid="true" aria-describedby="title-error"{% endif %}>
+      {% if errors.title %}<p class="errorlist" id="title-error">{{ errors.title }}</p>{% endif %}
+    </div>
+
+    <div class="note-meta-fields">
+      <div class="field">
+        <label for="note-scope">Attach to</label>
+        <select name="scope" id="note-scope" {% if errors.scope %}aria-invalid="true" aria-describedby="scope-error"{% endif %}>
+          <option value=""{% if not form.scope %} selected{% endif %}>Whole space</option>
+          {% for opt in scope_options %}
+            <option value="{{ opt.value }}"{% if opt.value == form.scope %} selected{% endif %}>{{ opt.label }}{% if opt.new %} (new draft week){% endif %}</option>
+          {% endfor %}
+        </select>
+        {% if errors.scope %}<p class="errorlist" id="scope-error">{{ errors.scope }}</p>{% endif %}
+      </div>
+      <div class="field field-check">
+        <input type="checkbox" name="pinned" id="note-pinned"{% if form.pinned %} checked{% endif %}>
+        <label for="note-pinned">Pinned <span class="helptext">(shown first on the public page)</span></label>
+      </div>
+    </div>
+
+    <div class="field">
+      <span class="label" id="editor-label">Content</span>
+      <div id="note-editor" class="note-editor" role="group" aria-labelledby="editor-label" aria-describedby="editor-help" hidden></div>
+      <p class="helptext" id="editor-help" hidden>Type <kbd>/</kbd> or press <kbd>Tab</kbd> on an empty line to add a block. Select text for bold, links and highlight. <kbd>Ctrl</kbd>+<kbd>S</kbd> saves.</p>
+      <div id="note-fallback">
+        <label for="note-text" class="visually-hidden">Content (plain text)</label>
+        <textarea name="content_text" id="note-text" rows="12" aria-describedby="fallback-help">{{ initial_text }}</textarea>
+        <p class="helptext" id="fallback-help">Plain text mode: separate paragraphs with a blank line.{% if note %} Saving here replaces formatting with plain paragraphs.{% endif %}</p>
+      </div>
+    </div>
+
+    <div class="note-actions">
+      <button class="btn btn-primary" type="submit" id="note-save">{% if note %}Save{% else %}Create note{% endif %}</button>
+      <a class="btn btn-ghost" href="{{ back_url }}">Cancel</a>
+      {% if note %}<a class="btn btn-ghost btn-danger note-delete-link" href="{% url 'notes:delete' space.slug note.pk %}">Delete</a>{% endif %}
+      <span class="muted small" id="note-status" role="status" aria-live="polite"></span>
+    </div>
+  </form>
+</div>
+{{ initial_content|json_script:"note-initial" }}
+{% endblock %}
+
+{% block extra_js %}{{ block.super }}
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/editorjs@2.31.7/dist/editorjs.umd.js" integrity="sha384-VCPYJjPO1nUrpiHNQ3xaVEF48GhfB6De5k5JldN/3TwGZru+K+sQt7GQ4jK98z1e" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/header@2.8.9/dist/header.umd.js" integrity="sha384-gsHcARcunRrx+hZA2vZY6ESWTIC8ZJZpyuAjNmKponX5ftG43VHfZ8geURncPDPh" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/list@2.0.9/dist/editorjs-list.umd.js" integrity="sha384-rgmnoyP4Ld6tRkTXoq965fzulyZZ6NSUYy+JYI4mO9sxaJDrpyjORlNUz5Un2gbn" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/checklist@1.6.0/dist/checklist.umd.js" integrity="sha384-0BqF+qLJW3rgkQbEXSAPhd2gF6Xwk49oPrdpj1vTJP8oD38jxRANuMVPYi0ehfVr" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/quote@2.7.6/dist/quote.umd.js" integrity="sha384-z43sl0T5c0VaZ0qANtyMgguU+QmuuzTmE4lWCjGDs2IgVrbQn6ycdbCwemISQxug" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/delimiter@1.4.2/dist/delimiter.umd.js" integrity="sha384-JxFg+sowMd+b7DsI8bCOvXPDtHPiIjXxSMk9WXaGWpDtSwzzMIb+tGwkaAh9qMgB" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/inline-code@1.5.2/dist/inline-code.umd.js" integrity="sha384-+3JnsZ5Ef/PXN4aILTy12X6yX8sSVv213uEX7F8ab9j3aBMj/7sypQGQad44v5jo" crossorigin="anonymous" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@editorjs/marker@1.4.0/dist/marker.umd.js" integrity="sha384-xCW2AjuNs2r576ct9AvLo3Knz4N5tsszNVGXueZc7eI1iTEL0NSFy47G1er+diE+" crossorigin="anonymous" defer></script>
+<script src="{% static 'js/notes-editor.js' %}" defer></script>
+{% endblock %}

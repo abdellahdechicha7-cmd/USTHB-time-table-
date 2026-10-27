@@ -1,0 +1,39 @@
+<div class="session-form" data-title="{% if session %}Edit session{% else %}New session{% endif %}">
+  <form method="post" action="{{ action_url }}" id="session-form" novalidate>
+    {% csrf_token %}
+    {% include "dashboard/_nonfield.html" %}
+    <div class="field-pair">
+      {% include "dashboard/_field.html" with field=form.day %}
+      {% include "dashboard/_field.html" with field=form.timeslot %}
+    </div>
+    <div class="field-pair">
+      {% include "dashboard/_field.html" with field=form.subject %}
+      {% include "dashboard/_field.html" with field=form.new_subject %}
+    </div>
+    {% include "dashboard/_field.html" with field=form.kind %}
+    {% include "dashboard/_field.html" with field=form.groups %}
+    <div class="field-pair">
+      {% include "dashboard/_field.html" with field=form.teacher %}
+      {% include "dashboard/_field.html" with field=form.location %}
+    </div>
+    {% include "dashboard/_field.html" with field=form.comment %}
+    {% if form.is_cancelled %}{% include "dashboard/_field.html" with field=form.is_cancelled %}{% endif %}
+    <div class="row">
+      <button class="btn btn-primary" type="submit">{% if session %}Save changes{% else %}Add session{% endif %}</button>
+      <a class="btn btn-ghost" href="{{ back_url }}" data-dialog-close>Cancel</a>
+    </div>
+  </form>
+  {% if session %}
+  <hr class="divider">
+  <div class="row">
+    <form method="post" action="{% url 'dashboard:session_toggle_cancel' space.slug session.pk %}">
+      {% csrf_token %}
+      <button class="btn" type="submit">{% if session.is_cancelled %}Restore session{% else %}Mark as cancelled{% endif %}</button>
+    </form>
+    <form method="post" action="{% url 'dashboard:session_delete' space.slug session.pk %}" data-confirm="Delete this session? This cannot be undone.">
+      {% csrf_token %}
+      <button class="btn btn-danger" type="submit">Delete session</button>
+    </form>
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,42 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Admins · Dashboard{% endblock %}
+{% block content %}
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a></p>
+<div class="page-head">
+  <h1>Admins</h1>
+  <a class="btn btn-primary" href="{% url 'dashboard:admin_create' %}">New admin</a>
+</div>
+<div class="table-wrap">
+<table class="table">
+  <caption class="visually-hidden">Admin accounts and the spaces they manage</caption>
+  <thead><tr><th scope="col">User</th><th scope="col">Spaces</th><th scope="col">Status</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>
+        <strong>{{ u.username }}</strong>{% if u.is_superuser %} <span class="badge">Owner</span>{% endif %}
+        {% if u.email %}<div class="muted small">{{ u.email }}</div>{% endif %}
+      </td>
+      <td>
+        {% if u.is_superuser %}<span class="muted small">All spaces</span>
+        {% else %}{% for m in u.space_memberships.all %}<span class="chip">{{ m.space.name }}</span>{% empty %}<span class="muted small">None</span>{% endfor %}{% endif %}
+      </td>
+      <td>{% if u.is_active %}<span class="badge badge-published">Active</span>{% else %}<span class="badge badge-cancelled">Inactive</span>{% endif %}</td>
+      <td class="cell-end">
+        <div class="row row-end">
+          <a class="btn btn-ghost" href="{% url 'dashboard:admin_edit' u.pk %}">Edit<span class="visually-hidden"> {{ u.username }}</span></a>
+          <a class="btn btn-ghost" href="{% url 'dashboard:admin_password' u.pk %}">Password<span class="visually-hidden"> for {{ u.username }}</span></a>
+          {% if u.pk != user.pk %}
+          <form method="post" action="{% url 'dashboard:admin_toggle_active' u.pk %}"{% if u.is_active %} data-confirm="Deactivate {{ u.username }}? They will no longer be able to log in."{% endif %}>
+            {% csrf_token %}
+            <button class="btn btn-ghost{% if u.is_active %} btn-danger{% endif %}" type="submit">{% if u.is_active %}Deactivate{% else %}Reactivate{% endif %}<span class="visually-hidden"> {{ u.username }}</span></button>
+          </form>
+          {% endif %}
+        </div>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

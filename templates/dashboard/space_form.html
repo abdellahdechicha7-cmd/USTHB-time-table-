@@ -1,0 +1,25 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}{% if creating %}New space{% else %}Edit {{ space.name }}{% endif %} · Dashboard{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a>{% if space %} / <a href="{% url 'dashboard:settings' space.slug %}">{{ space.name }}</a>{% endif %}</p>
+<h1>{% if creating %}New space{% else %}Edit space{% endif %}</h1>
+{% if space %}{% include "dashboard/_space_nav.html" with active='edit' %}{% endif %}
+<form method="post" class="card" novalidate data-slugify{% if not creating %} data-slug-locked{% endif %}>
+  {% csrf_token %}
+  {% include "dashboard/_nonfield.html" %}
+  {% for field in form %}{% include "dashboard/_field.html" %}{% endfor %}
+  {% if creating %}<p class="helptext">Default time slots (08:00 to 17:50) are created automatically.</p>{% endif %}
+  <div class="row">
+    <button class="btn btn-primary" type="submit">{% if creating %}Create space{% else %}Save{% endif %}</button>
+    <a class="btn btn-ghost" href="{% if space %}{% url 'dashboard:settings' space.slug %}{% else %}{% url 'dashboard:home' %}{% endif %}">Cancel</a>
+  </div>
+</form>
+{% if space %}
+<section class="card danger-zone" aria-labelledby="danger-title">
+  <h2 id="danger-title">Delete space</h2>
+  <p class="muted small">Removes every week, session, note and setting of this space.</p>
+  <a class="btn btn-danger" href="{% url 'dashboard:space_delete' space.slug %}">Delete this space</a>
+</section>
+{% endif %}
+{% endblock %}

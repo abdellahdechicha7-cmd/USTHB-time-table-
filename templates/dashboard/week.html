@@ -1,0 +1,141 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Week of {{ start|date:"d M Y" }} · {{ space.name }}{% endblock %}
+{% block content %}
+{% with start_iso=start|date:"Y-m-d" %}
+{% if not is_published %}<div class="draft-bar" aria-hidden="true"></div>{% endif %}
+
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a> / {{ space.name }}</p>
+{% include "dashboard/_space_nav.html" with active='week' %}
+
+<header class="week-head">
+  <div class="week-title">
+    <h1>Week of {{ start|date:"j M" }} – {{ end|date:"j M Y" }}</h1>
+    <div class="row">
+      {% if is_published %}<span class="badge badge-published">Published</span>{% else %}<span class="badge badge-draft">Draft</span>{% endif %}
+      <span class="muted small">{{ session_count }} session{{ session_count|pluralize }}{% if week %} · updated {{ week.updated_at|date:"d M H:i" }}{% else %} · not started{% endif %}</span>
+    </div>
+  </div>
+  <div class="week-actions row">
+    <nav class="segmented" aria-label="Change week">
+      <a href="{% url 'dashboard:week' space.slug prev %}" aria-label="Previous week">Prev</a>
+      <a href="{% url 'dashboard:week' space.slug this_week %}"{% if is_this_week %} aria-current="true"{% endif %}>This week</a>
+      <a href="{% url 'dashboard:week' space.slug next %}" aria-label="Next week">Next</a>
+    </nav>
+    <a class="btn btn-ghost" href="{% url 'public:week' space.slug start_iso %}">Public view</a>
+    {% if notes_url %}<a class="btn btn-ghost" href="{{ notes_url }}">Notes for this week</a>{% endif %}
+    <form method="post" action="{% url 'dashboard:week_publish' space.slug start_iso %}">
+      {% csrf_token %}
+      {% if is_published %}
+        <input type="hidden" name="action" value="unpublish">
+        <button class="btn" type="submit">Unpublish</button>
+      {% else %}
+        <input type="hidden" name="action" value="publish">
+        <button class="btn btn-primary" type="submit">Publish</button>
+      {% endif %}
+    </form>
+  </div>
+</header>
+
+{% if not has_sessions %}
+<section class="card empty-week" aria-labelledby="empty-title">
+  <h2 id="empty-title">This week is empty</h2>
+  {% if has_other_weeks %}
+  <p class="muted small">Start from an existing week and adjust what changed, or build it from scratch.</p>
+  <form method="post" action="{% url 'dashboard:week_copy' space.slug start_iso %}" class="copy-form">
+    {% csrf_token %}
+    <input type="hidden" name="mode" value="replace">
+    {% include "dashboard/_field.html" with field=copy_form.source %}
+    {% include "dashboard/_field.html" with field=copy_form.include_notes %}
+    <div class="row">
+      <button class="btn btn-primary" type="submit">Copy week</button>
+    </div>
+  </form>
+  <hr class="divider">
+  {% else %}
+  <p class="muted small">There is no other week to copy from yet. Add sessions directly in the grid below.</p>
+  {% endif %}
+  {% if not week %}
+  <form method="post" action="{% url 'dashboard:week_start' space.slug start_iso %}">
+    {% csrf_token %}
+    <button class="btn" type="submit">Start blank</button>
+  </form>
+  {% endif %}
+</section>
+{% else %}
+{% if has_other_weeks %}
+<details class="copy-more">
+  <summary class="btn btn-ghost">Copy from another week…</summary>
+  <form method="post" action="{% url 'dashboard:week_copy' space.slug start_iso %}" class="card copy-form">
+    {% csrf_token %}
+    {% include "dashboard/_field.html" with field=copy_form.source %}
+    {% include "dashboard/_field.html" with field=copy_form.mode %}
+    <p class="helptext">Replace removes this week's {{ session_count }} session{{ session_count|pluralize }} first. Merge adds the copied sessions next to them.</p>
+    {% include "dashboard/_field.html" with field=copy_form.confirm_replace %}
+    {% include "dashboard/_field.html" with field=copy_form.include_notes %}
+    <button class="btn" type="submit">Copy</button>
+  </form>
+</details>
+{% endif %}
+{% endif %}
+
+{% if timeslots %}
+<div class="grid-wrap" role="region" aria-label="Timetable grid" tabindex="0">
+  <table class="tt-grid">
+    <caption class="visually-hidden">Sessions for the week of {{ start|date:"d M Y" }}. Rows are days, columns are time slots.</caption>
+    <thead>
+      <tr>
+        <th scope="col" class="tt-corner"><span class="visually-hidden">Day</span></th>
+        {% for ts in timeslots %}<th scope="col"><span class="mono">{{ ts.start|time:"H:i" }}</span><span class="muted mono"> – {{ ts.end|time:"H:i" }}</span></th>{% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <th scope="row" class="tt-day">{{ row.label }}<span class="muted small">{{ row.date|date:"j M" }}</span></th>
+        {% for ts, cell in row.slots %}
+        <td class="tt-cell">
+          {% for s in cell %}
+          <a class="tt-session tt-{{ s.kind }}{% if s.is_cancelled %} is-cancelled{% endif %}" href="{% url 'dashboard:session_edit' space.slug s.pk %}" data-dialog
+             aria-label="Edit {{ s.subject.name }} {{ s.get_kind_display }}, {{ row.label }} {{ ts.start|time:'H:i' }}{% if s.is_cancelled %}, cancelled{% endif %}">
+            <span class="tt-subject">{{ s.subject.name }}</span>
+            <span class="tt-meta">
+              <span class="badge badge-{{ s.kind }}">{{ s.get_kind_display }}</span>
+              {% for g in s.groups.all %}<span class="tt-group">{{ g.name }}</span>{% endfor %}
+            </span>
+            {% if s.location or s.teacher %}<span class="tt-line muted">{% if s.location %}<span class="mono">{{ s.location }}</span>{% endif %}{% if s.location and s.teacher %} · {% endif %}{{ s.teacher }}</span>{% endif %}
+            {% if s.changes %}<span class="tt-meta">{% for c in s.changes %}<span class="badge badge-{{ c }}">{{ c }}</span>{% endfor %}</span>{% endif %}
+          </a>
+          {% endfor %}
+          <a class="tt-add" href="{% url 'dashboard:session_create' space.slug start_iso %}?day={{ row.day }}&amp;slot={{ ts.pk }}" data-dialog
+             aria-label="Add session {{ row.label }} {{ ts.start|time:'H:i' }}"><span aria-hidden="true">+</span></a>
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p>This space has no time slots. <a href="{% url 'dashboard:settings' space.slug %}#slots">Add time slots in Settings</a>.</p></div>
+{% endif %}
+
+{% if removed %}
+<section class="removed" aria-labelledby="removed-title">
+  <h2 id="removed-title">Removed since the week of {{ week.copied_from.start|date:"j M" }}</h2>
+  <ul class="small">
+    {% for s in removed %}<li>{{ s.get_day_display }} {{ s.timeslot.start|time:"H:i" }} · {{ s.subject.name }} <span class="badge badge-{{ s.kind }}">{{ s.get_kind_display }}</span>{% for g in s.groups.all %} {{ g.name }}{% endfor %}</li>{% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<dialog id="session-dialog" class="side-dialog" aria-labelledby="session-dialog-title">
+  <div class="side-dialog-head">
+    <h2 id="session-dialog-title">Session</h2>
+    <button type="button" class="btn btn-ghost btn-icon" data-dialog-close aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+  </div>
+  <div class="side-dialog-body" data-dialog-body></div>
+</dialog>
+{% endwith %}
+{% endblock %}

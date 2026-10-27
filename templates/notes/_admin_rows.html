@@ -1,0 +1,19 @@
+<ul class="note-rows">
+  {% for note in notes %}
+    <li class="note-row">
+      <div class="note-row-main">
+        <a class="note-row-title" href="{% url 'notes:edit' space.slug note.pk %}">{{ note.title|default:"Untitled" }}</a>
+        {% if note.pinned %}<span class="badge">Pinned</span>{% endif %}
+        <div class="muted small">
+          {% if note.week_id %}Week of {{ note.week.start|date:"j M" }}{% else %}Whole space{% endif %}
+          · Updated <time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"j M, H:i" }}</time>
+          {% if note.author %}· {{ note.author.get_username }}{% endif %}
+        </div>
+      </div>
+      <div class="note-row-actions">
+        <a class="btn btn-ghost" href="{% url 'notes:edit' space.slug note.pk %}">Edit<span class="visually-hidden"> {{ note.title|default:"untitled note" }}</span></a>
+        <a class="btn btn-ghost btn-danger" href="{% url 'notes:delete' space.slug note.pk %}">Delete<span class="visually-hidden"> {{ note.title|default:"untitled note" }}</span></a>
+      </div>
+    </li>
+  {% endfor %}
+</ul>

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ space.name }} · Week of {{ start|date:"j M Y" }}{% endblock %}
+{% block description %}Weekly timetable for {{ space.name }}{% if meta_line %} ({{ meta_line }}){% endif %}.{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/public.css' %}">{% if is_draft_preview %}<meta name="robots" content="noindex">{% endif %}{% endblock %}
+{% block content %}
+<div class="tt" data-space="{{ space.slug }}">
+  <header class="tt-head">
+    <div>
+      <h1>{{ space.name }}</h1>
+      {% if meta_line %}<p class="muted small tt-meta">{{ meta_line }}</p>{% endif %}
+    </div>
+    <nav class="tt-nav" aria-label="Weeks">
+      <a class="btn btn-icon" href="{% url 'public:week' space.slug prev_week %}" rel="prev" aria-label="Previous week"><span aria-hidden="true">‹</span></a>
+      <p class="tt-week">Week of <span class="nowrap">Sat {{ start|date:"j M" }}</span> – <span class="nowrap">Thu {{ end|date:"j M Y" }}</span></p>
+      <a class="btn btn-icon" href="{% url 'public:week' space.slug next_week %}" rel="next" aria-label="Next week"><span aria-hidden="true">›</span></a>
+      {% if not is_current %}<a class="btn btn-ghost" href="{% url 'public:space' space.slug %}">This week</a>{% endif %}
+      <form class="tt-jump" method="get" action="{% url 'public:space' space.slug %}">
+        <label class="visually-hidden" for="tt-date">Go to the week containing a date</label>
+        <input id="tt-date" type="date" name="date" value="{{ start|date:'Y-m-d' }}">
+        <button class="btn" type="submit">Go</button>
+      </form>
+    </nav>
+  </header>
+
+  {% if is_draft_preview %}
+  <p class="tt-banner" role="note"><span class="badge badge-draft">Draft</span> Draft preview — students can't see this</p>
+  {% endif %}
+
+  {% if week %}
+    {% if groups %}
+    <div class="tt-filter" data-filter hidden>
+      <span class="small muted" id="tt-filter-label">Group</span>
+      <div class="segmented" role="group" aria-labelledby="tt-filter-label">
+        <button type="button" data-group="" aria-pressed="true">All</button>
+        {% for name, key in groups %}<button type="button" data-group="{{ key }}" aria-pressed="false">{{ name }}</button>{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if not total_sessions %}<p class="empty">No sessions scheduled this week.</p>{% endif %}
+
+    {# Desktop: official-style grid #}
+    <div class="tt-table-wrap" role="region" aria-labelledby="tt-caption" tabindex="0">
+      <table class="tt-table">
+        <caption id="tt-caption" class="visually-hidden">{{ space.name }} timetable, week of Saturday {{ start|date:"j F" }} to Thursday {{ end|date:"j F Y" }}</caption>
+        <thead>
+          <tr>
+            <td class="tt-corner"></td>
+            {% for ts in timeslots %}<th scope="col" class="mono">{{ ts.start|time:"H:i" }}<span aria-hidden="true">–</span><span class="visually-hidden"> to </span>{{ ts.end|time:"H:i" }}</th>{% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+          <tr class="{% if row.is_today %}is-today{% endif %}{% if not row.count %} is-empty{% endif %}">
+            <th scope="row"><span class="tt-day">{{ row.label }}</span> <span class="muted small">{{ row.date|date:"j M" }}</span>{% if row.is_today %} <span class="badge">Today</span>{% endif %}</th>
+            {% for cell in row.cells %}<td>{% for s in cell %}{% include "public/_session.html" with show_time=False %}{% endfor %}</td>{% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Mobile: one list per day; public.js turns these into tabs #}
+    <div class="tt-days" data-days data-default-day="{{ default_day }}">
+      <div class="segmented tt-tabs" role="tablist" aria-label="Day" hidden>
+        {% for row in rows %}<button type="button" role="tab" id="tt-tab-{{ row.day }}" aria-controls="tt-day-{{ row.day }}" aria-selected="false" tabindex="-1"><span>{{ row.short }}</span> <span class="tt-tab-date">{{ row.date|date:"j" }}</span></button>{% endfor %}
+      </div>
+      {% for row in rows %}
+      <section class="tt-day-panel" id="tt-day-{{ row.day }}" aria-labelledby="tt-day-h-{{ row.day }}">
+        <h2 class="tt-day-h" id="tt-day-h-{{ row.day }}">{{ row.label }} <span class="muted">{{ row.date|date:"j M" }}</span>{% if row.is_today %} <span class="badge">Today</span>{% endif %}</h2>
+        {% for s in row.sessions %}{% include "public/_session.html" with show_time=True %}{% endfor %}
+        <p class="empty tt-day-empty"{% if row.count %} hidden{% endif %}>No sessions</p>
+      </section>
+      {% endfor %}
+    </div>
+
+    <p class="tt-legend small muted">
+      <span><span class="badge badge-course">Course</span> Lecture</span>
+      <span><span class="badge badge-td">TD</span> Tutorial</span>
+      <span><span class="badge badge-tp">TP</span> Lab</span>
+      <span><span class="badge badge-exam">Exam</span> Exam</span>
+    </p>
+
+    {% if removed %}
+    <section class="tt-removed" aria-labelledby="tt-removed-h">
+      <h2 id="tt-removed-h">Removed this week</h2>
+      <ul>
+        {% for s in removed %}
+        <li data-groups="{{ s.group_key }}">{{ s.subject.name }} · {{ s.get_kind_display }}{% for g in s.groups.all %}{% if forloop.first %} · {% else %}, {% endif %}{{ g.name }}{% endfor %} — {{ s.day_short }} <span class="mono">{{ s.timeslot.start|time:"H:i" }}</span> <span class="muted">(not held this week)</span></li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  {% else %}
+    <div class="empty-state">
+      <h2>This week's timetable hasn't been published yet</h2>
+      {% if fallback %}
+      <p><a href="{% url 'public:week' space.slug fallback.start|date:'Y-m-d' %}">See the latest published week (week of {{ fallback.start|date:"j M Y" }})</a></p>
+      {% else %}
+      <p class="muted">Check back later.</p>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="tt-notes">{% include "notes/_public_notes.html" %}</div>
+</div>
+{% endblock %}
+{% block extra_js %}<script src="{% static 'js/public.js' %}" defer></script>{% endblock %}

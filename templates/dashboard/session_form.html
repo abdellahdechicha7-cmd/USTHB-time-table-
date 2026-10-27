@@ -1,0 +1,10 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}{% if session %}Edit session{% else %}New session{% endif %} · {{ space.name }}{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a> / <a href="{{ back_url }}">{{ space.name }}, week of {{ start|date:"j M Y" }}</a></p>
+<h1>{% if session %}Edit session{% else %}New session{% endif %}</h1>
+<div class="card">
+  {% include "dashboard/_session_form.html" %}
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}{% if creating %}New admin{% else %}Edit {{ target.username }}{% endif %} · Dashboard{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a> / <a href="{% url 'dashboard:admins' %}">Admins</a></p>
+<h1>{% if creating %}New admin{% else %}Edit {{ target.username }}{% endif %}</h1>
+<form method="post" class="card" novalidate>
+  {% csrf_token %}
+  {% include "dashboard/_nonfield.html" %}
+  {% for field in form %}{% include "dashboard/_field.html" %}{% endfor %}
+  {% if target.is_superuser %}<p class="helptext">Owners manage every space regardless of assignments.</p>{% endif %}
+  <div class="row">
+    <button class="btn btn-primary" type="submit">{% if creating %}Create admin{% else %}Save{% endif %}</button>
+    <a class="btn btn-ghost" href="{% url 'dashboard:admins' %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

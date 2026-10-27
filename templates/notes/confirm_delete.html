@@ -1,0 +1,20 @@
+{% extends "dashboard/_layout.html" %}
+{% load static %}
+{% block title %}Delete note · {{ space.name }}{% endblock %}
+{% block extra_head %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/notes.css' %}">{% endblock %}
+{% block content %}
+{% include "dashboard/_space_nav.html" with active="notes" %}
+<div class="notes-admin notes-narrow">
+  <h1>Delete note?</h1>
+  <div class="card">
+    <p><strong>{{ note.title|default:"Untitled" }}</strong>
+      <span class="muted">— {% if note.week_id %}week of {{ note.week.start|date:"j M Y" }}{% else %}whole space{% endif %}</span></p>
+    <p class="muted small">This cannot be undone. Students will no longer see this note.</p>
+    <form method="post" class="row">
+      {% csrf_token %}
+      <button class="btn btn-primary" type="submit">Delete note</button>
+      <a class="btn btn-ghost" href="{{ back_url }}">Cancel</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

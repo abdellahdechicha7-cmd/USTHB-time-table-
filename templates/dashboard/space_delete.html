@@ -1,0 +1,16 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Delete {{ space.name }} · Dashboard{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<h1>Delete “{{ space.name }}”?</h1>
+<p>This permanently removes the space with all its weeks, sessions, notes, groups, time slots and subjects. It cannot be undone.</p>
+<form method="post" class="card">
+  {% csrf_token %}
+  <p class="small">Type <kbd>{{ space.slug }}</kbd> to confirm.</p>
+  {% include "dashboard/_field.html" with field=form.confirm %}
+  <div class="row">
+    <button class="btn btn-danger" type="submit">Delete space</button>
+    <a class="btn btn-ghost" href="{% url 'dashboard:space_edit' space.slug %}">Cancel</a>
+  </div>
+</form>
+{% endblock %}

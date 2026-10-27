@@ -1,0 +1,27 @@
+{% extends "dashboard/_layout.html" %}
+{% block title %}Activity · {{ space.name }}{% endblock %}
+{% block content %}
+<p class="crumbs small"><a href="{% url 'dashboard:home' %}">Dashboard</a> / {{ space.name }}</p>
+<h1>Activity</h1>
+{% include "dashboard/_space_nav.html" with active='activity' %}
+{% if logs %}
+<div class="table-wrap">
+<table class="table">
+  <caption class="visually-hidden">Last 100 changes in {{ space.name }}</caption>
+  <thead><tr><th scope="col">Time</th><th scope="col">User</th><th scope="col">Action</th><th scope="col">Detail</th></tr></thead>
+  <tbody>
+  {% for l in logs %}
+    <tr>
+      <td class="nowrap"><time datetime="{{ l.created_at|date:'c' }}">{{ l.created_at|date:"d M Y H:i" }}</time></td>
+      <td>{{ l.user.get_username|default:"—" }}</td>
+      <td><span class="mono">{{ l.action }}</span></td>
+      <td>{{ l.detail }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% else %}
+<p class="muted">No activity yet.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sections · USTHB Timetable{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/public.css' %}">{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<h1>Sections</h1>
+<p class="muted">Pick your section to see this week's timetable.</p>
+{% if spaces %}
+<ul class="space-list" role="list">
+  {% for s in spaces %}
+  <li>
+    <a class="space-link" href="{{ s.get_absolute_url }}">
+      <span class="space-name">{{ s.name }}</span>
+      {% if s.year %}<span class="muted small">{{ s.year }}</span>{% endif %}
+      {% if s.description %}<span class="muted small space-desc">{{ s.description }}</span>{% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">No sections have been published yet.</p>
+{% endif %}
+{% endblock %}

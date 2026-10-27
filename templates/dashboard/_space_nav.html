@@ -1,0 +1,7 @@
+<nav class="space-nav" aria-label="{{ space.name }} sections">
+  <a href="{% url 'dashboard:space' space.slug %}"{% if active == 'week' %} aria-current="page"{% endif %}>Timetable</a>
+  <a href="{% url 'notes:list' space.slug %}"{% if active == 'notes' %} aria-current="page"{% endif %}>Notes</a>
+  <a href="{% url 'dashboard:settings' space.slug %}"{% if active == 'settings' %} aria-current="page"{% endif %}>Settings</a>
+  <a href="{% url 'dashboard:activity' space.slug %}"{% if active == 'activity' %} aria-current="page"{% endif %}>Activity</a>
+  {% if user.is_superuser %}<a href="{% url 'dashboard:space_edit' space.slug %}"{% if active == 'edit' %} aria-current="page"{% endif %}>Edit space</a>{% endif %}
+</nav>

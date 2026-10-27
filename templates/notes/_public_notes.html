@@ -1,1 +1,26 @@
-{# Placeholder — replaced by the notes agent. Context: pinned_notes, week_notes #}
+{% load static notes_tags %}{% if pinned_notes or week_notes %}
+<link rel="stylesheet" href="{% static 'css/notes.css' %}">
+<section class="notes-public" aria-labelledby="notes-heading">
+  <h2 id="notes-heading">Notes</h2>
+  {% for note in pinned_notes %}
+    <article class="note">
+      <div class="note-head">
+        {% if note.title %}<h3 class="note-title">{{ note.title }}</h3>{% endif %}
+        {% if note.pinned %}<span class="badge">Pinned</span>{% endif %}
+      </div>
+      <div class="note-body">{{ note.content|render_note:4 }}</div>
+      <p class="note-meta">Updated <time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"j M" }}</time></p>
+    </article>
+  {% endfor %}
+  {% if week_notes %}
+    {% if pinned_notes %}<p class="notes-subhead">This week</p>{% endif %}
+    {% for note in week_notes %}
+      <article class="note">
+        {% if note.title or note.pinned %}<div class="note-head">{% if note.title %}<h3 class="note-title">{{ note.title }}</h3>{% endif %}{% if note.pinned %}<span class="badge">Pinned</span>{% endif %}</div>{% endif %}
+        <div class="note-body">{{ note.content|render_note:4 }}</div>
+        <p class="note-meta">Updated <time datetime="{{ note.updated_at|date:'c' }}">{{ note.updated_at|date:"j M" }}</time></p>
+      </article>
+    {% endfor %}
+  {% endif %}
+</section>
+{% endif %}

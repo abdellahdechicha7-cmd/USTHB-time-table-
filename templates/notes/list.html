@@ -1,0 +1,42 @@
+{% extends "dashboard/_layout.html" %}
+{% load static %}
+{% block title %}Notes · {{ space.name }}{% endblock %}
+{% block extra_head %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/notes.css' %}">{% endblock %}
+{% block content %}
+{% include "dashboard/_space_nav.html" with active="notes" %}
+<div class="notes-admin">
+  <div class="notes-toolbar">
+    <div>
+      <h1>Notes</h1>
+      <p class="muted small">
+        {% if week_start %}Showing space-wide notes and the week of {{ week_start|date:"j M Y" }}. <a href="{% url 'notes:list' space.slug %}">Show all</a>
+        {% else %}Space-wide notes appear on every week; week notes only on their week.{% endif %}
+      </p>
+    </div>
+    <a class="btn btn-primary" href="{{ create_url }}">New note</a>
+  </div>
+
+  {% if not has_notes %}
+    <div class="card notes-empty">
+      <p>No notes yet.</p>
+      <a class="btn" href="{{ create_url }}">Write the first note</a>
+    </div>
+  {% else %}
+    {% if space_wide %}
+      <section aria-labelledby="h-space-wide">
+        <h2 id="h-space-wide" class="notes-group-title">Whole space</h2>
+        {% include "notes/_admin_rows.html" with notes=space_wide %}
+      </section>
+    {% endif %}
+    {% for group in week_groups %}
+      <section aria-labelledby="h-week-{{ group.week.pk }}">
+        <h2 id="h-week-{{ group.week.pk }}" class="notes-group-title">
+          Week of {{ group.week.start|date:"j M Y" }}
+          {% if not group.week.is_published %}<span class="badge badge-draft">Draft</span>{% endif %}
+        </h2>
+        {% include "notes/_admin_rows.html" with notes=group.notes %}
+      </section>
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+/* Public timetable pages. Tokens only (see base.css). Mobile-first. */
+
+.tt [hidden], .space-list [hidden] { display: none !important; }
+.nowrap { white-space: nowrap; }
+.empty { color: var(--text-muted); font-size: .9rem; margin: 8px 0; }
+
+/* ------------------------------------------------------------- home */
+.space-list { list-style: none; margin: 16px 0 0; padding: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+.space-list li + li { border-top: 1px solid var(--border); }
+.space-link { display: flex; flex-direction: column; gap: 2px; padding: 14px 16px; text-decoration: none; min-height: 44px; }
+.space-link:hover { background: var(--surface-2); }
+.space-name { font-weight: 500; }
+
+/* ----------------------------------------------------------- header */
+.tt-head { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
+.tt-head h1 { margin: 0; }
+.tt-meta { margin: 2px 0 0; }
+.tt-nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tt-nav .btn { min-height: 44px; }
+.tt-nav .btn-icon { width: 44px; font-size: 1.25rem; line-height: 1; }
+.tt-week { margin: 0; font-weight: 500; font-size: .95rem; }
+.tt-jump { display: flex; gap: 6px; align-items: center; }
+.tt-jump input[type=date] { width: auto; min-height: 44px; }
+
+.tt-banner {
+  display: flex; align-items: center; gap: 8px; margin: 0 0 16px; padding: 10px 14px;
+  border: 1px solid var(--border-strong); border-radius: var(--radius);
+  background: var(--td-bg); color: var(--td-text); font-size: .9rem; font-weight: 500;
+}
+
+/* ----------------------------------------------------------- filter */
+.tt-filter { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.tt-filter .segmented { flex-wrap: wrap; }
+.tt .segmented button { min-height: 44px; }
+
+/* --------------------------------------------------- session block */
+.sess { display: flex; gap: 12px; font-size: .85rem; line-height: 1.4; }
+.sess-body { min-width: 0; }
+.sess-title { font-weight: 500; color: var(--text); overflow-wrap: anywhere; }
+.sess-tags { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0 2px; }
+.sess-meta { display: flex; flex-wrap: wrap; gap: 2px 8px; font-size: .8rem; }
+.sess-comment { font-size: .78rem; margin-top: 2px; }
+.sess.is-cancelled .sess-title, .sess.is-cancelled .sess-meta { color: var(--text-muted); }
+.sess.is-hidden { display: none; }
+.tag {
+  display: inline-block; padding: 0 6px; border: 1px solid var(--border-strong); border-radius: 4px;
+  font-family: var(--font-mono); font-size: .7rem; color: var(--text-muted); line-height: 1.5;
+}
+
+/* ------------------------------------------------- mobile day lists */
+.tt-tabs { display: flex; width: 100%; margin-bottom: 12px; }
+.tt-tabs button { flex: 1 1 0; min-width: 0; flex-direction: column; gap: 0; line-height: 1.15; padding: 4px 2px; }
+.tt-tab-date { font-family: var(--font-mono); font-size: .72rem; }
+.tt-day-panel { margin-bottom: 20px; }
+.tt-day-h { font-size: .95rem; margin: 0 0 8px; }
+.tt-day-panel .sess {
+  padding: 12px; margin-bottom: 8px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+}
+.tt-day-panel .sess-time { flex: none; width: 3.4rem; font-size: .78rem; color: var(--text-muted); display: flex; flex-direction: column; }
+.tt-days.has-tabs .tt-day-h { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* -------------------------------------------------------- desktop table */
+.tt-table-wrap { display: none; }
+@media (min-width: 900px) {
+  .tt-head { flex-direction: row; align-items: flex-end; justify-content: space-between; }
+  .tt-days { display: none; }
+  .tt-table-wrap {
+    display: block; overflow-x: auto;
+    border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  }
+  .tt-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .tt-table th, .tt-table td { border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); padding: 8px; vertical-align: top; text-align: left; }
+  .tt-table tr > :first-child { border-left: 0; width: 112px; }
+  .tt-table tbody tr:last-child > * { border-bottom: 0; }
+  .tt-table thead th { font-size: .78rem; font-weight: 500; color: var(--text-muted); background: var(--surface-2); }
+  .tt-corner { background: var(--surface-2); }
+  .tt-table tbody th { font-weight: 500; font-size: .85rem; }
+  .tt-table tbody th .muted { display: block; font-weight: 400; }
+  .tt-table tbody th .badge { margin-top: 4px; }
+  .tt-table tr.is-today > * { background: var(--surface-2); }
+  .tt-table tr.is-empty > * { padding-top: 6px; padding-bottom: 6px; }
+  .tt-table tr.is-empty th .muted { display: inline; }
+  .tt-table td .sess + .sess { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+}
+
+/* ------------------------------------------------------------ misc */
+.tt-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 12px 0 0; }
+.tt-removed { margin-top: 20px; }
+.tt-removed h2 { font-size: .85rem; color: var(--text-muted); font-weight: 500; }
+.tt-removed ul { margin: 0; padding-left: 18px; font-size: .85rem; }
+.tt-removed li.is-hidden { display: none; }
+.empty-state { padding: 32px 20px; text-align: center; border: 1px dashed var(--border-strong); border-radius: var(--radius); }
+.empty-state h2 { font-size: 1rem; }
+.empty-state p { margin: 0; }
+.tt-notes { margin-top: 32px; }
