@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Admin login · USTHB Timetable{% endblock %}
+{% block container_class %}container-narrow{% endblock %}
+{% block content %}
+<div class="card" style="max-width:380px;margin:48px auto">
+  <h1>Admin login</h1>
+  <p class="muted small">Only section admins need an account. Students can view timetables without logging in.</p>
+  <form method="post">
+    {% csrf_token %}
+    {% if form.non_field_errors %}<ul class="errorlist">{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
+    <div class="field">
+      <label for="id_username">Username</label>
+      <input type="text" name="username" id="id_username" autocomplete="username" autofocus required>
+    </div>
+    <div class="field">
+      <label for="id_password">Password</label>
+      <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+    </div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="btn btn-primary" type="submit" style="width:100%">Log in</button>
+  </form>
+</div>
+{% endblock %}
