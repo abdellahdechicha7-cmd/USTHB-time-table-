@@ -90,8 +90,15 @@ main { padding: 24px 0 64px; }
 /* ---------------------------------------------------------------- header */
 .site-header { border-bottom: 1px solid var(--border); background: var(--bg); }
 .site-header .container { display: flex; align-items: center; gap: 12px; min-height: 56px; }
-.brand { font-weight: 600; text-decoration: none; letter-spacing: -0.01em; margin-right: auto; }
+.brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  text-decoration: none; letter-spacing: -0.01em; margin-right: auto;
+}
+.brand b { font-weight: 600; }
 .brand span { color: var(--text-muted); font-weight: 400; }
+/* The emblem has a white background; keep it as a small white tile in both themes. */
+.brand-logo { flex: none; border-radius: 6px; background: #fff; }
+[data-theme="dark"] .brand-logo { box-shadow: 0 0 0 1px var(--border); }
 .header-actions { display: flex; align-items: center; gap: 8px; }
 [data-theme="dark"] .icon-moon, [data-theme="light"] .icon-sun { display: none; }
 
